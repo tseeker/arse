@@ -409,7 +409,7 @@ final class Loader
 		return $cName;
 	}
 
-	private static function creator( $type , $convert , $args )
+	public static function DirectCreate( $type , $convert , $args )
 	{
 		$name = array_shift( $args );
 		$cName = $convert ? Loader::convertName( $type , $name ) : $name;
@@ -466,22 +466,22 @@ final class Loader
 
 	public static function Create( )
 	{
-		return Loader::creator( 'extra' , false , func_get_args( ) );
+		return Loader::DirectCreate( 'extra' , false , func_get_args( ) );
 	}
 
 	public static function View( )
 	{
-		return Loader::creator( 'view' , true , func_get_args( ) );
+		return Loader::DirectCreate( 'view' , true , func_get_args( ) );
 	}
 
 	public static function Ctrl( )
 	{
-		return Loader::creator( 'ctrl' , true , func_get_args( ) );
+		return Loader::DirectCreate( 'ctrl' , true , func_get_args( ) );
 	}
 
 	public static function Page( )
 	{
-		return Loader::creator( 'page' , true , func_get_args( ) );
+		return Loader::DirectCreate( 'page' , true , func_get_args( ) );
 	}
 
 	public static function DAO( $name )
