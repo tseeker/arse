@@ -42,6 +42,7 @@ final class ConfigGetter
 final class Package
 {
 	private $name;
+	private $source;
 
 	private $files;
 	private $requires;
@@ -57,9 +58,10 @@ final class Package
 	private $loaded = false;
 	private $config;
 
-	public function __construct( $name , $description , $config )
+	public function __construct( $name , $description , $config , $source )
 	{
 		$this->name = $name;
+		$this->source = $source;
 
 		$fields = array( 'files' , 'requires' , 'daos' , 'views' , 'ctrls' , 'extras' , 'singletons' , 'pages' , 'hooks' );
 		foreach ( $fields as $field ) {
@@ -101,6 +103,11 @@ final class Package
 	public function name( )
 	{
 		return $this->name;
+	}
+
+	public function source( )
+	{
+		return $this->source;
 	}
 
 	public function files( )
@@ -188,7 +195,7 @@ final class Loader
 {
 	private static $loader = null;
 
-	private $baseDir;
+	private static $paths = array();
 	private $config;
 	private $packages = array( );
 	private $items = array(
@@ -206,21 +213,38 @@ final class Loader
 
 	private function __construct( )
 	{
-		$this->baseDir = dirname( __FILE__ );
+		if ( empty( Loader::$paths ) ) {
+			array_push( Loader::$paths , dirname( __FILE__ ) );
+		}
 		$this->loadConfig( );
 		$this->loadPackageDescriptions( );
 	}
 
 	private function loadConfig( )
 	{
-		$config = array( );
-		@include( $this->baseDir . '/config.inc.php' );
-		$this->config = $config;
+		$mergedConfig = array( );
+		foreach ( Loader::$paths as $directory ) {
+			if ( ! file_exists( $directory . '/config.inc.php' ) ) {
+				continue;
+			}
+
+			$config = array( );
+			@include( $directory . '/config.inc.php' );
+			$mergedConfig = array_merge_recursive( $mergedConfig , $config );
+		}
+		$this->config = $mergedConfig;
 	}
 
 	private function loadPackageDescriptions( )
 	{
-		if ( !( $dh = opendir( $this->baseDir ) ) ) {
+		foreach ( Loader::$paths as $source ) {
+			$this->loadPackageDescriptionsFrom( $source );
+		}
+	}
+
+	private function loadPackageDescriptionsFrom( $source )
+	{
+		if ( !( $dh = opendir( $source ) ) ) {
 			throw new LoaderException( "unable to access directory" );
 		}
 
@@ -229,9 +253,9 @@ final class Loader
 				continue;
 			}
 
-			$path = "{$this->baseDir}/$entry";
+			$path = "$source/$entry";
 			if ( is_dir( $path ) && is_file( "$path/package.inc.php" ) ) {
-				$this->loadDescription( $entry );
+				$this->loadDescription( $entry , $source );
 			}
 		}
 
@@ -239,10 +263,10 @@ final class Loader
 	}
 
 
-	private function loadDescription( $name )
+	private function loadDescription( $name , $source )
 	{
 		$package = array( );
-		require( $this->baseDir . '/' . $name . '/package.inc.php' );
+		require( $source . '/' . $name . '/package.inc.php' );
 		if ( empty( $package ) ) {
 			throw new LoaderException( "package '$name': no information" );
 		}
@@ -251,7 +275,7 @@ final class Loader
 			$this->config[ $name ] = array( );
 		}
 
-		$package = new Package( $name , $package , $this->config[ $name ] );
+		$package = new Package( $name , $package , $this->config[ $name ] , $source );
 		$this->packages[ $name ] = $package;
 		$this->config[ $name ] = null;
 
@@ -289,7 +313,7 @@ final class Loader
 			$this->loadPackage( $dependency );
 		}
 
-		$dir = $this->baseDir . '/' . $name;
+		$dir = $package->source() . '/' . $name;
 		foreach ( $package->files( ) as $file ) {
 			require_once( "$dir/$file.inc.php" );
 		}
@@ -390,6 +414,17 @@ final class Loader
 		$name = array_shift( $args );
 		$cName = $convert ? Loader::convertName( $type , $name ) : $name;
 		return Loader::get( )->loadAndCreate( $type , $name , $cName , $args );
+	}
+
+
+	public static function AddPath( $path )
+	{
+		if ( empty( Loader::$paths ) ) {
+			array_push( Loader::$paths , dirname( __FILE__ ) );
+		}
+		if ( is_dir( $path ) ) {
+			array_push( Loader::$paths , $path );
+		}
 	}
 
 
