@@ -22,3 +22,4 @@ $package[ 'extras' ][] = 'Modifier_TrimString';
 $package[ 'extras' ][] = 'Validator_StringLength';
 $package[ 'extras' ][] = 'Validator_InArray';
 $package[ 'extras' ][] = 'Validator_IntValue';
+$package[ 'extras' ][] = 'Validator_Email';

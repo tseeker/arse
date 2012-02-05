@@ -99,3 +99,26 @@ class Validator_IntValue
 		}
 	}
 }
+
+
+class Validator_Email
+	implements FieldValidator
+{
+	private $errorText;
+
+	public function __construct( $errorText )
+	{
+		$this->errorText = $errorText;
+	}
+
+	public function validate( $value )
+	{
+		if ( preg_match( "/^[a-zA-Z0-9\._-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/" , $value ) ) {
+			list( $username , $domain ) = split( '@' , $value );
+			if ( checkdnsrr( $domain , 'MX' ) ) {
+				return null;
+			}
+		}
+		return array( $this->errorText );
+	}
+}
