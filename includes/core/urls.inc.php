@@ -57,7 +57,7 @@ final class URLMapper
 	}
 
 
-	private function showPageNotFound( $requestPath )
+	private function showPageNotFound( $requestPath = '' )
 	{
 		$path = $this->package->config( $this->configBase . '/errors/404', 'errors/404' );
 		$this->showPageFor( $path . '/' . $requestPath , false );
@@ -99,5 +99,70 @@ final class URLMapper
 		} else {
 			$page->handle( );
 		}
+	}
+}
+
+
+class View_BasicErrorDisplay
+	implements View
+{
+	private $error;
+	private $site;
+	private $path;
+
+	public function __construct( $extraPath )
+	{
+		$this->error = array_shift( $extraPath );
+		if ( ! empty( $extraPath ) ) {
+			$this->site = array_shift( $extraPath );
+			$this->path = join( '/' , $extraPath );
+		}
+	}
+
+	public function render( )
+	{
+		$text = HTML::make( 'p' )
+			->setAttribute( 'class' , 'error' )
+			->appendText( 'An error occurred while trying to access this page.' )
+			->appendElement( HTML::make( 'br' ) )
+			->appendText( 'Error code ' )
+			->appendElement( HTML::make( 'strong' )->appendText( $this->error ) )
+			->appendText( ' was encountered' );
+		if ( $this->site !== null ) {
+			$text->appendText( ' while trying to access ' )
+				->appendElement( HTML::make( 'strong' )->appendText( '/' . $this->path ) )
+				->appendText( ' on site ' )
+				->appendElement( HTML::make( 'strong' )->appendText( $this->site ) );
+		}
+		return $text->appendText( '.' );
+	}
+
+}
+
+
+class Page_Errors
+	extends Page_Basic
+	implements PathAware
+{
+	private $httpError;
+
+	public function setExtraPath( $extraPath )
+	{
+		$extraPath = split( '/' , $extraPath );
+		if ( (int)$extraPath[ 0 ] != 0 ) {
+			$this->httpError = (int) $extraPath[ 0 ];
+		}
+		$this->setTitle( 'Error ' . $extraPath[ 0 ] );
+		$this->addView( Loader::View( 'basic_error_display' , $extraPath ) );
+
+		return true;
+	}
+
+	public function render( )
+	{
+		if ( $this->httpError !== null ) {
+			header( 'HTTP/1.0 ' . $this->httpError );
+		}
+		return parent::render( );
 	}
 }

@@ -15,12 +15,14 @@ $package[ 'files' ][] = 'controller';
 $package[ 'files' ][] = 'dao';
 $package[ 'files' ][] = 'database';
 $package[ 'files' ][] = 'page';
-$package[ 'files' ][] = 'urls';
 $package[ 'files' ][] = 'view';
+$package[ 'files' ][] = 'urls';
 
 $package[ 'pages' ][] = 'basic';
+$package[ 'pages' ][] = 'errors';
 
-$package[ 'ctrls' ][] = 'session';
 $package[ 'ctrls' ][] = 'simple';
+
+$package[ 'views' ][] = 'basic_error_display';
 
 $package[ 'singletons' ][] = 'Database';
