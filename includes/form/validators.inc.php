@@ -7,20 +7,22 @@ class Validator_StringLength
 	protected $errorPrefix;
 	protected $minLength;
 	protected $maxLength;
+	protected $allowEmpty;
 
-	public function __construct( $errorPrefix , $minLength = 0 , $maxLength = null )
+	public function __construct( $errorPrefix , $minLength = 0 , $maxLength = null , $allowEmpty = false )
 	{
 		assert( $maxLength === null || $maxLength >= $minLength );
 		$this->errorPrefix = $errorPrefix;
 		$this->minLength = $minLength;
 		$this->maxLength = $maxLength;
+		$this->allowEmpty = $allowEmpty;
 	}
 
 
 	public function validate( $value )
 	{
 		$len = strlen( $value );
-		if ( $len < $this->minLength ) {
+		if ( $len < $this->minLength && ( $len != 0 || ! $this->allowEmpty ) ) {
 			$template = Loader::Text( '%1$s is too short (min. %2$d characters)' );
 			return array( sprintf( $template , $this->errorPrefix , $this->minLength ) );
 		}
