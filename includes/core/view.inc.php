@@ -5,6 +5,29 @@ interface View
 	public function render( );
 }
 
+interface BaseURLAware
+{
+	public function setBaseURL( $baseURL );
+}
+
+abstract class BaseURLAwareView
+	implements View , BaseURLAware
+{
+	protected $base;
+
+	public function setBaseURL( $baseURL )
+	{
+		$this->base = $baseURL;
+	}
+}
+
+interface TitleProvider
+{
+
+	public function getTitle( );
+
+}
+
 
 final class HTML
 {

@@ -49,6 +49,9 @@ abstract class Page
 				}
 			}
 		} elseif ( ! is_null( $rc ) ) {
+			if ( $rc{0} != '/' ) {
+				$rc = $this->baseURL . '/' . $rc;
+			}
 			header( "Location: $rc" );
 			$rv = true;
 		}
@@ -121,7 +124,7 @@ abstract class HTMLPage
 		foreach ( $menu as $link => $title ) {
 			$html->appendElement( HTML::make( 'li' )
 				->appendElement( HTML::make( 'a' )
-					->setAttribute( 'href' , $link )
+					->setAttribute( 'href' , $this->getBaseURL() . '/' . $link )
 					->setAttribute( 'title' , HTML::from( $title ) )
 					->appendText( $title ) ) );
 		}
@@ -170,6 +173,9 @@ abstract class HTMLPage
 		}
 
 		foreach ( $this->views as $view ) {
+			if ( $view instanceof BaseURLAware ) {
+				$view->setBaseURL( $this->getBaseURL( ) );
+			}
 			$container->append( $view->render( ) );
 		}
 

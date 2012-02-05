@@ -32,11 +32,18 @@ class BoxButton
 		return $this;
 	}
 
-	public function render( )
+	public function render( $baseURL )
 	{
+		$url = $this->URL;
+		if ( $url{0} != ':' ) {
+			if ( $url{0} != '/' ) {
+				$url = "/$url";
+			}
+			$url = $baseURL . $url;
+		}
 		return HTML::make( 'a' )
 			->setAttribute( 'title' , HTML::from( $this->title ) )
-			->setAttribute( 'href' , $this->URL )
+			->setAttribute( 'href' , $url )
 			->setAttribute( 'class' ,
 				'box-button' . ( ( $this->class === null )
 					? '' : ( ' ' . $this->class ) ) )
@@ -54,8 +61,8 @@ class BoxButton
 }
 
 
-final class View_Box
-	implements View
+class View_Box
+	extends BaseURLAwareView
 {
 	protected $title;
 	protected $class;
@@ -69,6 +76,15 @@ final class View_Box
 	{
 		$this->title = $title;
 		$this->contents = $contents;
+	}
+
+
+	public function setBaseURL( $baseURL )
+	{
+		parent::setBaseURL( $baseURL );
+		if ( $this->contents instanceof BaseURLAware ) {
+			$this->contents->setBaseURL( $baseURL );
+		}
 	}
 
 
@@ -110,7 +126,7 @@ final class View_Box
 			$buttons = HTML::make( 'div' )
 				->setAttribute( 'class' , 'box-buttons' );
 			foreach ( $this->buttons as $button ) {
-				$buttons->appendElement( $button->render( ) );
+				$buttons->appendElement( $button->render( $this->base ) );
 			}
 			$box->appendElement( $buttons );
 		}

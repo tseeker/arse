@@ -65,9 +65,15 @@ class Ctrl_Form
 			return $this->form->view( );
 		}
 		if ( $cResult ) {
-			return $this->form->successURL( );
+			$url = $this->form->successURL( );
+		} else {
+			$url = $this->form->cancelURL( );
 		}
-		return $this->form->cancelURL( );
+
+		if ( $url{0} != '/' ) {
+			$url = "/$url";
+		}
+		return $page->getBaseURL( ) . $url;
 	}
 
 }

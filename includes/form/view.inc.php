@@ -1,7 +1,7 @@
 <?php
 
 class View_Form
-	implements View
+	extends BaseURLAwareView
 {
 	protected $form;
 
@@ -161,10 +161,18 @@ class View_Form
 		$name = $this->form->name();
 		$prefix = $name . '-';
 
+		$action = $this->form->action( );
+		if ( $action{0} != '?' ) {
+			if ( $action{0} != '/' ) {
+				$action = "/$action";
+			}
+			$action = $this->base . $action;
+		}
+
 		$form = HTML::make( 'form' )
 			->setAttribute( 'name' , $name )
 			->setAttribute( 'id' , $prefix . 'form' )
-			->setAttribute( 'action' , $this->form->action( ) )
+			->setAttribute( 'action' , $action )
 			->setAttribute( 'method' , $this->form->method( ) )
 			->append( $this->renderHiddenFields( $prefix ) )
 			->append( $visibleArea = HTML::make( 'dl' ) );
