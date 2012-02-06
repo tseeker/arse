@@ -130,4 +130,10 @@ final class DBQuery
 
 		return $result;
 	}
+
+
+	public function prepared( )
+	{
+		return ( $this->statement !== null );
+	}
 }
