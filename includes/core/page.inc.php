@@ -11,6 +11,9 @@ abstract class Page
 	public function __construct( )
 	{
 		$this->baseURL = dirname( $_SERVER[ 'SCRIPT_NAME' ] );
+		if ( $this->baseURL == '/' ) {
+			$this->baseURL = '';
+		}
 	}
 
 	public final function addController( Controller $controller )
@@ -52,6 +55,8 @@ abstract class Page
 			if ( $rc{0} != '/' ) {
 				$rc = $this->baseURL . '/' . $rc;
 			}
+			$rc = ( $_SERVER[ 'HTTPS' ] ? 'https' : 'http' ) . '://' . $_SERVER[ 'SERVER_NAME' ]
+				. ':' . $_SERVER[ 'SERVER_PORT' ] . $rc;
 			header( "Location: $rc" );
 			$rv = true;
 		}
