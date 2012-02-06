@@ -64,8 +64,10 @@ class Ctrl_Form
 		if ( $cResult === null ) {
 			return $this->form->view( );
 		}
-		if ( $cResult ) {
+		if ( $cResult === true ) {
 			$url = $this->form->successURL( );
+		} elseif ( $cResult ) {
+			return $cResult;
 		} else {
 			$url = $this->form->cancelURL( );
 		}
