@@ -4,6 +4,7 @@ class View_Form
 	extends BaseURLAwareView
 {
 	protected $form;
+	protected $fieldTypes;
 
 	public function __construct( Form $form )
 	{
@@ -28,90 +29,32 @@ class View_Form
 		return $result;
 	}
 
-
-	protected function renderPasswordField( $field , $prefix )
-	{
-		return HTML::make( 'input' )
-			->setAttribute( 'type' , 'password' )
-			->setAttribute( 'name' , $field->name( ) )
-			->setAttribute( 'id' , $prefix . 'field' )
-			->setAttribute( 'class' , 'form-text-field' );
-	}
-
-
-	protected function renderTextField( $field , $prefix )
-	{
-		return HTML::make( 'input' )
-			->setAttribute( 'type' , 'text' )
-			->setAttribute( 'name' , $field->name( ) )
-			->setAttribute( 'id' , $prefix . 'field' )
-			->setAttribute( 'class' , 'form-text-field' )
-			->setAttribute( 'value' , HTML::from( $field->value( ) ) );
-	}
-
-
-	protected function renderTextArea( $field , $prefix )
-	{
-		return HTML::make( 'textarea' )
-			->setAttribute( 'name' , $field->name( ) )
-			->setAttribute( 'id' , $prefix . 'field' )
-			->setAttribute( 'class' , 'form-text-field' )
-			->appendText( (string) $field->value( ) );
-	}
-
-
-	protected function renderSelectField( $field , $prefix )
-	{
-		$select = HTML::make( 'select' )
-			->setAttribute( 'name' , $field->name( ) )
-			->setAttribute( 'id' , $prefix . 'field' )
-			->setAttribute( 'class' , 'form-select' );
-
-		$selected = $field->value( );
-		foreach ( $field->options( ) as $value => $obj ) {
-			$option = HTML::make( 'option' )
-				->setAttribute( 'value' , $value )
-				->setAttribute( 'disabled' , $obj->disabled ? 'disabled' : null )
-				->appendText( $obj->text );
-			if ( "$value" === "$selected" ) {
-				$option->setAttribute( 'selected' , 'selected' );
-			}
-			$select->appendElement( $option );
-		}
-		return $select;
-	}
-
-
 	protected function renderField( $field , $prefix )
 	{
-		switch ( $field->type( ) ) {
-
-		case 'password':
-			$result = $this->renderPasswordField( $field , $prefix );
-			break;
-
-		case 'text':
-			$result = $this->renderTextField( $field , $prefix );
-			break;
-
-		case 'textarea':
-			$result = $this->renderTextArea( $field , $prefix );
-			break;
-
-		case 'select':
-			$result = $this->renderSelectField( $field , $prefix );
-			break;
-
-		default:
-			throw new Exception( "field " . $field->name() . " has unknown type " . $field->type() );
-
+		$type = $field->type( );
+		if ( array_key_exists( $type , $this->fieldTypes ) ) {
+			return $this->fieldTypes[ $type ]->render( $field , $prefix );
 		}
-		return $result;
+		throw new Exception( "field " . $field->name() . " has unknown type " . $field->type() );
+	}
+
+	private function loadFieldTypes( )
+	{
+		$types = Loader::Find( 'FieldView' );
+		$loaded = array( );
+
+		foreach ( $types as $type ) {
+			$instance = Loader::Create( $type );
+			$loaded[ $instance->getFieldType( ) ] = $instance;
+		}
+
+		$this->fieldTypes = $loaded;
 	}
 
 
 	protected function renderVisibleFields( $target , $prefix )
 	{
+		$this->loadFieldTypes( );
 		foreach ( $this->form->fields( ) as $field ) {
 			if ( $field === null ) {
 				$target->appendElement( HTML::make( 'hr' ) );
