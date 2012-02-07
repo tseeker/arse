@@ -352,7 +352,11 @@ final class Loader
 		if ( empty( $args ) ) {
 			$instance = new $cName();
 		} else {
-			$reflection = new ReflectionClass( $cName );
+			try {
+				$reflection = new ReflectionClass( $cName );
+			} catch ( ReflectionException $e ) {
+				throw new LoaderException( "Class $cName from package $pName not found" );
+			}
 			$instance = $reflection->newInstanceArgs( $args );
 		}
 
@@ -391,6 +395,42 @@ final class Loader
 		return $instance;
 	}
 
+	public function findClasses( $class , $type = 'extra' , $onlyLoadedPackages = true )
+	{
+		$rType = $type . 's';
+		if ( ! array_key_exists( $rType , $this->items ) ) {
+			throw new LoaderException( "Invalid type '$type'" );
+		}
+		$convertName = ( $type !== 'extra' );
+
+		$result = array( );
+		foreach ( $this->items[ $rType ] as $item => $pName ) {
+			$cName = $convertName ? Loader::convertName( $type , $item ) : $item;
+			if ( ! strcasecmp( $cName , $class ) ) {
+				continue;
+			}
+
+			$package = $this->packages[ $pName ];
+			if ( ! $package->loaded( ) ) {
+				if ( $onlyLoadedPackages ) {
+					continue;
+				}
+				$this->loadPackage( $pName );
+			}
+			try {
+				$ref = new ReflectionClass( $cName );
+			} catch ( ReflectionException $e ) {
+				throw new LoaderException( "Class $cName for $item of type $type and package $pName not found" );
+			}
+
+			if ( $ref->implementsInterface( $class ) || $ref->isSubclassOf( $class ) ) {
+				$result[] = $item;
+			}
+		}
+
+		return $result;
+	}
+
 
 	private static function get( )
 	{
@@ -408,6 +448,7 @@ final class Loader
 		}
 		return $cName;
 	}
+
 
 	public static function DirectCreate( $type , $convert , $args )
 	{
@@ -487,5 +528,10 @@ final class Loader
 	public static function DAO( $name )
 	{
 		return Loader::get( )->getDao( $name );
+	}
+
+	public static function Find( $class , $type = 'extra' , $onlyLoadedPackages = true )
+	{
+		return Loader::get( )->findClasses( $class , $type , $onlyLoadedPackages );
 	}
 }
