@@ -55,7 +55,7 @@ abstract class Page
 			if ( $rc{0} != '/' ) {
 				$rc = $this->baseURL . '/' . $rc;
 			}
-			$rc = ( $_SERVER[ 'HTTPS' ] ? 'https' : 'http' ) . '://' . $_SERVER[ 'SERVER_NAME' ]
+			$rc = ( ( array_key_exists( 'HTTPS' , $_SERVER ) && $_SERVER[ 'HTTPS' ] ) ? 'https' : 'http' ) . '://' . $_SERVER[ 'SERVER_NAME' ]
 				. ':' . $_SERVER[ 'SERVER_PORT' ] . $rc;
 			header( "Location: $rc" );
 			$rv = true;
