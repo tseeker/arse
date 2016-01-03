@@ -106,6 +106,9 @@ class FieldView_Select
 			->setAttribute( 'name' , $field->name( ) )
 			->setAttribute( 'id' , $prefix . 'field' )
 			->setAttribute( 'class' , 'form-select' );
+		if ( $field->hasParameter( 'multiple' ) ) {
+			$select->setAttribute( 'multiple' , 'multiple' );
+		}
 
 		$selected = $field->value( );
 		foreach ( $field->options( ) as $value => $obj ) {

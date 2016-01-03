@@ -19,6 +19,8 @@ final class Field
 	private $name;
 
 	private $type;
+	private $parameters;
+
 	private $options = array( );
 
 	private $description;
@@ -33,10 +35,11 @@ final class Field
 	private $errors = array( );
 
 
-	public function __construct( $name , $type )
+	public function __construct( $name , $type , $parameters = array( ) )
 	{
 		$this->type = $type;
 		$this->name = $name;
+		$this->parameters = $parameters;
 	}
 
 
@@ -65,6 +68,12 @@ final class Field
 	public function type( )
 	{
 		return $this->type;
+	}
+
+	public function hasParameter( $name )
+	{
+		return array_key_exists( $name , $this->parameters )
+			|| array_search( $name , $this->parameters ) !== false;
 	}
 
 
