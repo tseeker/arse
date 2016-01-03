@@ -108,15 +108,22 @@ class FieldView_Select
 			->setAttribute( 'class' , 'form-select' );
 		if ( $field->hasParameter( 'multiple' ) ) {
 			$select->setAttribute( 'multiple' , 'multiple' );
+			$v = $field->value( );
+			if ( is_array( $v ) ) {
+				$selected = array_fill_keys( $v , '' );
+			} else {
+				$selected = array( );
+			}
+		} else {
+			$selected = array( $field->value( ) => '' );
 		}
 
-		$selected = $field->value( );
 		foreach ( $field->options( ) as $value => $obj ) {
 			$option = HTML::make( 'option' )
 				->setAttribute( 'value' , $value )
 				->setAttribute( 'disabled' , $obj->disabled ? 'disabled' : null )
 				->appendText( $obj->text );
-			if ( "$value" === "$selected" ) {
+			if ( array_key_exists( $value , $selected ) ) {
 				$option->setAttribute( 'selected' , 'selected' );
 			}
 			$select->appendElement( $option );
