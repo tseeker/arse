@@ -20,8 +20,12 @@ class Ctrl_Form
 				continue;
 			}
 
+			$name = $field->name( );
+			if ( @substr_compare( $name , '[]' , -2 , 2 ) == 0 ) {
+				$name = substr( $name , 0 , -2 );
+			}
 			try {
-				$value = $this->getParameter( $field->name( ) , $this->form->method( ) );
+				$value = $this->getParameter( $name , $this->form->method( ) );
 			} catch ( ParameterException $e ) {
 				$value = null;
 			}
